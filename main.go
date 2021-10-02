@@ -3,10 +3,10 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
-	"sort"
 
 	"github.com/kargakis/sorter/pkg/store"
 )
@@ -19,14 +19,24 @@ var (
 	output     = flag.String("output", "", "Output file")
 )
 
-func sortInMemory(lines []*store.Line, byName bool, byAddress bool) {
-	switch {
-	case byName:
-		sort.Sort(store.ByName(lines))
-
-	case byAddress:
-		sort.Sort(store.ByAddress(lines))
+func validateFlags() error {
+	if *byAddress && *byName {
+		return errors.New("Cannot use both -name and -address, choose one of the two")
 	}
+
+	if !*byAddress && !*byName {
+		return errors.New("Need to sort based on -name or -address")
+	}
+
+	if *input == "" {
+		return errors.New("Need to provide an input file via -input")
+	}
+
+	if *output == "" {
+		return errors.New("Need to provide an output file via -output")
+	}
+
+	return nil
 }
 
 // TODO: First input file iteration can be executed
@@ -51,13 +61,8 @@ func main() {
 	flag.Parse()
 
 	// Input validation
-	if *byAddress && *byName {
-		fmt.Fprintln(os.Stderr, "Cannot use both -name and -address, choose one of the two")
-		os.Exit(1)
-	}
-
-	if !*byAddress && !*byName {
-		fmt.Fprintln(os.Stderr, "Need to sort based on -name or -address")
+	if err := validateFlags(); err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
 
@@ -78,7 +83,7 @@ func main() {
 	// }
 
 	scanner := bufio.NewScanner(file)
-	s := store.NewStore(*byAddress, *byName)
+	s := store.NewStore(*byAddress, *byName, *output)
 	for scanner.Scan() {
 		var line store.Line
 		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
@@ -93,5 +98,9 @@ func main() {
 
 	if err := scanner.Err(); err != nil {
 		fmt.Println(err)
+	}
+
+	if err := s.Sort(); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to sort: %v\n", err)
 	}
 }

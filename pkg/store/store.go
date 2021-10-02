@@ -1,10 +1,13 @@
 package store
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"sort"
 )
 
 type Line struct {
@@ -31,16 +34,20 @@ func (b ByAddress) Less(i, j int) bool {
 type Store struct {
 	// TODO: Could also use an internal buffer of bufferSize
 	// to batch disk writes
-	temp      map[string]*os.File
+	temp map[string]*os.File
+
 	byAddress bool
 	byName    bool
+
+	outputFilePath string
 }
 
-func NewStore(byAddress bool, byName bool) *Store {
+func NewStore(byAddress bool, byName bool, outputFilePath string) *Store {
 	return &Store{
-		temp:      make(map[string]*os.File),
-		byAddress: byAddress,
-		byName:    byName,
+		temp:           make(map[string]*os.File),
+		byAddress:      byAddress,
+		byName:         byName,
+		outputFilePath: outputFilePath,
 	}
 }
 
@@ -69,6 +76,7 @@ func (s *Store) Add(line *Line) error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("Writting %v in %s\n", string(lineToStore), file.Name())
 	return ioutil.WriteFile(file.Name(), lineToStore, 0777)
 }
 
@@ -89,4 +97,64 @@ func getKey(line *Line, keySize int, byAddress bool, byName bool) (string, error
 	default:
 		return "", errors.New("expected to choose address or name")
 	}
+}
+
+func sortLines(lines []*Line, byAddress bool, byName bool) {
+	switch {
+	case byAddress:
+		sort.Sort(ByAddress(lines))
+
+	case byName:
+		sort.Sort(ByName(lines))
+	}
+}
+
+func (s *Store) cleanup() {
+	for _, file := range s.temp {
+		if err := os.Remove(file.Name()); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to remove temp file %s: %v", file.Name(), err)
+		}
+	}
+}
+
+func (s *Store) Sort() error {
+	defer s.cleanup()
+	keys := make([]string, 0)
+
+	for key := range s.temp {
+		keys = append(keys, key)
+	}
+
+	outputFile, err := os.Create(s.outputFilePath)
+	if err != nil {
+		return err
+	}
+
+	sort.Strings(keys)
+	lines := make([]*Line, 0)
+	for _, key := range keys {
+		bucket := s.temp[key]
+		// sort if possible, otherwise break down to
+		// smaller files
+		// TODO: Size check
+		scanner := bufio.NewScanner(bucket)
+		for scanner.Scan() {
+			var line Line
+			if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
+				fmt.Fprintf(os.Stderr, "Failed to unmarshal %s: %v\n", scanner.Text(), err)
+				continue
+			}
+			lines = append(lines, &line)
+		}
+		sortLines(lines, s.byAddress, s.byName)
+		for _, line := range lines {
+			lineToStore, err := json.Marshal(line)
+			if err != nil {
+				return err
+			}
+			outputFile.Write(lineToStore)
+		}
+	}
+
+	return nil
 }
