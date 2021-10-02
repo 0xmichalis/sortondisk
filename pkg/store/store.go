@@ -71,13 +71,21 @@ func (s *Store) Add(line *Line) error {
 			return err
 		}
 		s.temp[key] = file
+	} else {
+		file, err = os.OpenFile(file.Name(), os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			return err
+		}
 	}
+	defer file.Close()
+
 	lineToStore, err := json.Marshal(line)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Writting %v in %s\n", string(lineToStore), file.Name())
-	return ioutil.WriteFile(file.Name(), lineToStore, 0777)
+	fmt.Printf("[Add] Writting %v in %s\n", string(lineToStore), file.Name())
+	_, err = file.WriteString(string(lineToStore) + "\n")
+	return err
 }
 
 func getKey(line *Line, keySize int, byAddress bool, byName bool) (string, error) {
@@ -131,9 +139,16 @@ func (s *Store) Sort() error {
 	}
 
 	sort.Strings(keys)
-	lines := make([]*Line, 0)
 	for _, key := range keys {
+		lines := make([]*Line, 0)
 		bucket := s.temp[key]
+		bucket, err = os.OpenFile(bucket.Name(), os.O_RDONLY, 0777)
+		if err != nil {
+			return err
+		}
+		defer bucket.Close()
+
+		fmt.Printf("[Sort] Sorting bucket %s (%s)\n", key, bucket.Name())
 		// sort if possible, otherwise break down to
 		// smaller files
 		// TODO: Size check
@@ -144,15 +159,19 @@ func (s *Store) Sort() error {
 				fmt.Fprintf(os.Stderr, "Failed to unmarshal %s: %v\n", scanner.Text(), err)
 				continue
 			}
+			fmt.Printf("[Sort] Sorting line %s %s\n", line.Address, line.Name)
 			lines = append(lines, &line)
 		}
+
 		sortLines(lines, s.byAddress, s.byName)
 		for _, line := range lines {
 			lineToStore, err := json.Marshal(line)
 			if err != nil {
 				return err
 			}
+			fmt.Printf("[Sort] Writting line %s %s\n", line.Address, line.Name)
 			outputFile.Write(lineToStore)
+			outputFile.Write([]byte("\n"))
 		}
 	}
 
