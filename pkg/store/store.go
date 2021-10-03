@@ -202,9 +202,6 @@ func (s *Store) Sort() error {
 		defer bucket.Close()
 
 		fmt.Printf("[Sort] Sorting bucket %s (%s)\n", key, bucket.Name())
-		// sort if possible, otherwise break down to
-		// smaller files
-		// TODO: Size check
 		scanner := bufio.NewScanner(bucket)
 		for scanner.Scan() {
 			var line Line
