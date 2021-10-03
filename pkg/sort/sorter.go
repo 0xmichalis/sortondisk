@@ -133,6 +133,7 @@ func (s *Sorter) add(line *Line, keySize int) (string, error) {
 		if err != nil {
 			return key, err
 		}
+		defer file.Close()
 	}
 
 	lineToStore, err := json.Marshal(line)
@@ -170,31 +171,14 @@ func getKey(line *Line, keySize int, byAddress bool, byName bool) (string, error
 	}
 }
 
-func sortLines(lines []*Line, byAddress bool, byName bool) {
-	switch {
-	case byAddress:
-		sort.Sort(ByAddress(lines))
-
-	case byName:
-		sort.Sort(ByName(lines))
-	}
-}
-
-func (s *Sorter) cleanup() {
-	for _, file := range s.temp {
-		if err := os.Remove(file.Name()); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to remove temp file %s: %v", file.Name(), err)
-		}
-	}
-}
-
 func (s *Sorter) sort() error {
 	defer s.cleanup()
-	keys := make([]string, 0)
 
+	keys := make([]string, 0)
 	for key := range s.temp {
-		fileSize := s.tempSize[key]
-		if s.bufferSize >= fileSize {
+		// Keep track of buckets with valid sizes only
+		// The rest are redundant
+		if s.bufferSize >= s.tempSize[key] {
 			keys = append(keys, key)
 		}
 	}
@@ -236,4 +220,22 @@ func (s *Sorter) sort() error {
 	}
 
 	return nil
+}
+
+func sortLines(lines []*Line, byAddress bool, byName bool) {
+	switch {
+	case byAddress:
+		sort.Sort(ByAddress(lines))
+
+	case byName:
+		sort.Sort(ByName(lines))
+	}
+}
+
+func (s *Sorter) cleanup() {
+	for _, file := range s.temp {
+		if err := os.Remove(file.Name()); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to remove temp file %s: %v", file.Name(), err)
+		}
+	}
 }
