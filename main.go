@@ -54,17 +54,8 @@ func main() {
 	}
 	defer file.Close()
 
-	const initialKeySize = 2
 	s := sort.New(*bufferSize, *byAddress, *byName, *output)
-
-	// Chunk input file into buffer-sized buckets
-	if err := s.CreateBucketsForFile(file, initialKeySize); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to bucket input file: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Sort all buckets
-	if err := s.Sort(); err != nil {
+	if err := s.Sort(file); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to sort: %v\n", err)
 		os.Exit(1)
 	}

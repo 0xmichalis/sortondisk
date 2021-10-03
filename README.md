@@ -20,6 +20,12 @@ Sort input file by address
 ./sorter -input ./test/data.in -address -output result.out
 ```
 
+## Test
+
+```
+go test ./...
+```
+
 ## Code verification
 
 ```

@@ -55,7 +55,23 @@ func New(bufferSize int, byAddress bool, byName bool, outputFilePath string) *So
 	}
 }
 
-func (s *Sorter) CreateBucketsForFile(file *os.File, keySize int) error {
+func (s *Sorter) Sort(file *os.File) error {
+	const initialKeySize = 2
+
+	// Chunk input file into buffer-sized buckets
+	if err := s.createBucketsForFile(file, initialKeySize); err != nil {
+		return fmt.Errorf("Failed to bucket input file: %w", err)
+	}
+
+	// Sort all buckets
+	if err := s.sort(); err != nil {
+		return fmt.Errorf("Failed to sort: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Sorter) createBucketsForFile(file *os.File, keySize int) error {
 	scanner := bufio.NewScanner(file)
 	createdKeys := make([]string, 0)
 
@@ -81,7 +97,7 @@ func (s *Sorter) CreateBucketsForFile(file *os.File, keySize int) error {
 		bucketSize := s.tempSize[key]
 
 		if s.bufferSize < bucketSize {
-			if err := s.CreateBucketsForFile(nextFile, keySize+1); err != nil {
+			if err := s.createBucketsForFile(nextFile, keySize+1); err != nil {
 				return err
 			}
 		}
@@ -172,7 +188,7 @@ func (s *Sorter) cleanup() {
 	}
 }
 
-func (s *Sorter) Sort() error {
+func (s *Sorter) sort() error {
 	defer s.cleanup()
 	keys := make([]string, 0)
 
