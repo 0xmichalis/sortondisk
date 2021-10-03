@@ -1,4 +1,4 @@
-package store
+package sort
 
 import (
 	"bufio"
@@ -31,9 +31,7 @@ func (b ByAddress) Less(i, j int) bool {
 	return b[i].Address < b[j].Address
 }
 
-type Store struct {
-	// TODO: Could also use an internal buffer of bufferSize
-	// to batch disk writes
+type Sorter struct {
 	bufferSize     int
 	byAddress      bool
 	byName         bool
@@ -46,8 +44,8 @@ type Store struct {
 	tempSize map[string]int
 }
 
-func NewStore(bufferSize int, byAddress bool, byName bool, outputFilePath string) *Store {
-	return &Store{
+func New(bufferSize int, byAddress bool, byName bool, outputFilePath string) *Sorter {
+	return &Sorter{
 		bufferSize:     bufferSize,
 		byAddress:      byAddress,
 		byName:         byName,
@@ -57,7 +55,7 @@ func NewStore(bufferSize int, byAddress bool, byName bool, outputFilePath string
 	}
 }
 
-func (s *Store) CreateBucketsForFile(file *os.File, keySize int) error {
+func (s *Sorter) CreateBucketsForFile(file *os.File, keySize int) error {
 	scanner := bufio.NewScanner(file)
 	createdKeys := make([]string, 0)
 
@@ -66,7 +64,7 @@ func (s *Store) CreateBucketsForFile(file *os.File, keySize int) error {
 		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
 			return fmt.Errorf("Failed to unmarshal %s: %w\n", scanner.Text(), err)
 		}
-		if key, err := s.Add(&line, keySize); err != nil {
+		if key, err := s.add(&line, keySize); err != nil {
 			return fmt.Errorf("Failed to store %v: %w\n", line, err)
 		} else {
 			createdKeys = append(createdKeys, key)
@@ -92,7 +90,7 @@ func (s *Store) CreateBucketsForFile(file *os.File, keySize int) error {
 	return nil
 }
 
-func (s *Store) Add(line *Line, keySize int) (string, error) {
+func (s *Sorter) add(line *Line, keySize int) (string, error) {
 	var err error
 	var key string
 
@@ -125,7 +123,6 @@ func (s *Store) Add(line *Line, keySize int) (string, error) {
 	if err != nil {
 		return key, err
 	}
-	fmt.Printf("[Add] Writting %v in %s\n", string(lineToStore), file.Name())
 	if _, err = file.WriteString(string(lineToStore) + "\n"); err != nil {
 		return key, err
 	}
@@ -167,7 +164,7 @@ func sortLines(lines []*Line, byAddress bool, byName bool) {
 	}
 }
 
-func (s *Store) cleanup() {
+func (s *Sorter) cleanup() {
 	for _, file := range s.temp {
 		if err := os.Remove(file.Name()); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to remove temp file %s: %v", file.Name(), err)
@@ -175,7 +172,7 @@ func (s *Store) cleanup() {
 	}
 }
 
-func (s *Store) Sort() error {
+func (s *Sorter) Sort() error {
 	defer s.cleanup()
 	keys := make([]string, 0)
 
@@ -201,7 +198,6 @@ func (s *Store) Sort() error {
 		}
 		defer bucket.Close()
 
-		fmt.Printf("[Sort] Sorting bucket %s (%s)\n", key, bucket.Name())
 		scanner := bufio.NewScanner(bucket)
 		for scanner.Scan() {
 			var line Line
@@ -209,7 +205,6 @@ func (s *Store) Sort() error {
 				fmt.Fprintf(os.Stderr, "Failed to unmarshal %s: %v\n", scanner.Text(), err)
 				continue
 			}
-			fmt.Printf("[Sort] Sorting line %s %s\n", line.Address, line.Name)
 			lines = append(lines, &line)
 		}
 
@@ -219,7 +214,6 @@ func (s *Store) Sort() error {
 			if err != nil {
 				return err
 			}
-			fmt.Printf("[Sort] Writting line %s %s\n", line.Address, line.Name)
 			outputFile.Write(lineToStore)
 			outputFile.Write([]byte("\n"))
 		}

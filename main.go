@@ -1,13 +1,12 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"flag"
 	"fmt"
 	"os"
 
-	"github.com/kargakis/sorter/pkg/store"
+	"github.com/kargakis/sorter/pkg/sort"
 )
 
 var (
@@ -38,24 +37,6 @@ func validateFlags() error {
 	return nil
 }
 
-// TODO: First input file iteration can be executed
-// at the same time as chunking the file into smaller
-// pieces that can fit bufferSize.
-func getLoc(inputFile *os.File) int {
-	var loc int
-	scanner := bufio.NewScanner(inputFile)
-
-	for scanner.Scan() {
-		loc++
-	}
-
-	if err := scanner.Err(); err != nil {
-		fmt.Println(err)
-	}
-
-	return loc
-}
-
 func main() {
 	flag.Parse()
 
@@ -73,22 +54,16 @@ func main() {
 	}
 	defer file.Close()
 
-	// Get lines of code to determine whether we can sort in memory
-	// or need to chunk the file on the disk before sorting
-	// loc := getLoc(file)
-	// _ = loc
-	// if *bufferSize >= loc {
-	// 	sortInMemory()
-	// }
-
 	const initialKeySize = 2
-	s := store.NewStore(*bufferSize, *byAddress, *byName, *output)
+	s := sort.New(*bufferSize, *byAddress, *byName, *output)
 
+	// Chunk input file into buffer-sized buckets
 	if err := s.CreateBucketsForFile(file, initialKeySize); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to bucket input file: %v\n", err)
 		os.Exit(1)
 	}
 
+	// Sort all buckets
 	if err := s.Sort(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to sort: %v\n", err)
 		os.Exit(1)
