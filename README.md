@@ -19,3 +19,9 @@ Sort input file by address
 ```
 ./sorter -input ./test/data.in -address -output result.out
 ```
+
+## Code verification
+
+```
+./hack/verify.sh
+```
