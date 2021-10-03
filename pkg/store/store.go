@@ -82,7 +82,7 @@ func (s *Store) CreateBucketsForFile(file *os.File, keySize int) error {
 		nextFile := s.temp[key]
 		bucketSize := s.tempSize[key]
 
-		if s.bufferSize > bucketSize {
+		if s.bufferSize < bucketSize {
 			if err := s.CreateBucketsForFile(nextFile, keySize+1); err != nil {
 				return err
 			}
@@ -182,7 +182,7 @@ func (s *Store) Sort() error {
 
 	for key := range s.temp {
 		fileSize := s.tempSize[key]
-		if s.bufferSize <= fileSize {
+		if s.bufferSize >= fileSize {
 			keys = append(keys, key)
 		}
 	}
