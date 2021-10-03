@@ -120,7 +120,6 @@ func (s *Store) Add(line *Line, keySize int) (string, error) {
 			return key, err
 		}
 	}
-	// defer file.Close()
 
 	lineToStore, err := json.Marshal(line)
 	if err != nil {
