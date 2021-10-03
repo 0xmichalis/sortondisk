@@ -1,5 +1,9 @@
 #!/bin/bash -e
 
+echo 'Running go vet ...'
+go vet ./...
+
+echo 'Running go fmt ...'
 FILES=$(gofmt -s -l pkg)
 
 if [[ -n "${FILES}" ]]; then
@@ -7,3 +11,5 @@ if [[ -n "${FILES}" ]]; then
     echo ${FILES}
     exit 1
 fi
+
+echo 'All good.'
