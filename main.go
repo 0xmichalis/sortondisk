@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -82,25 +81,16 @@ func main() {
 	// 	sortInMemory()
 	// }
 
-	scanner := bufio.NewScanner(file)
-	s := store.NewStore(*byAddress, *byName, *output)
-	for scanner.Scan() {
-		var line store.Line
-		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to unmarshal %s: %v\n", scanner.Text(), err)
-			continue
-		}
-		if err := s.Add(&line); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to store %v: %v\n", line, err)
-			continue
-		}
-	}
+	const initialKeySize = 2
+	s := store.NewStore(*bufferSize, *byAddress, *byName, *output)
 
-	if err := scanner.Err(); err != nil {
-		fmt.Println(err)
+	if err := s.CreateBucketsForFile(file, initialKeySize); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to bucket input file: %v\n", err)
+		os.Exit(1)
 	}
 
 	if err := s.Sort(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to sort: %v\n", err)
+		os.Exit(1)
 	}
 }

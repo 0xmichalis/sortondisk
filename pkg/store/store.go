@@ -34,58 +34,114 @@ func (b ByAddress) Less(i, j int) bool {
 type Store struct {
 	// TODO: Could also use an internal buffer of bufferSize
 	// to batch disk writes
-	temp map[string]*os.File
-
-	byAddress bool
-	byName    bool
-
+	bufferSize     int
+	byAddress      bool
+	byName         bool
 	outputFilePath string
+
+	// temp maps keys to temporary buckets where the input file
+	// is chunked into
+	temp map[string]*os.File
+	// tempSize maps keys to the bucket size
+	tempSize map[string]int
 }
 
-func NewStore(byAddress bool, byName bool, outputFilePath string) *Store {
+func NewStore(bufferSize int, byAddress bool, byName bool, outputFilePath string) *Store {
 	return &Store{
-		temp:           make(map[string]*os.File),
+		bufferSize:     bufferSize,
 		byAddress:      byAddress,
 		byName:         byName,
 		outputFilePath: outputFilePath,
+		temp:           make(map[string]*os.File),
+		tempSize:       make(map[string]int),
 	}
 }
 
-func (s *Store) Add(line *Line) error {
+func (s *Store) CreateBucketsForFile(file *os.File, keySize int) error {
+	scanner := bufio.NewScanner(file)
+	createdKeys := make([]string, 0)
+
+	for scanner.Scan() {
+		var line Line
+		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
+			return fmt.Errorf("Failed to unmarshal %s: %w\n", scanner.Text(), err)
+		}
+		if key, err := s.Add(&line, keySize); err != nil {
+			return fmt.Errorf("Failed to store %v: %w\n", line, err)
+		} else {
+			createdKeys = append(createdKeys, key)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Println(err)
+	}
+
+	// Iterate over all newly created buckets and chunk further if necessary
+	for _, key := range createdKeys {
+		nextFile := s.temp[key]
+		bucketSize := s.tempSize[key]
+
+		if s.bufferSize > bucketSize {
+			if err := s.CreateBucketsForFile(nextFile, keySize+1); err != nil {
+				return err
+			}
+			delete(s.temp, key)
+			delete(s.tempSize, key)
+			if err := os.Remove(nextFile.Name()); err != nil {
+				fmt.Fprintf(os.Stderr, "Failed to clean up temp file %s: %v\n", nextFile.Name(), err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *Store) Add(line *Line, keySize int) (string, error) {
 	var err error
 	var key string
+
+	// Use key to chunk input file into buckets
 	if s.byAddress {
 		key = line.Address
 	} else {
 		key = line.Name
 	}
-	key, err = getKey(line, 2, s.byAddress, s.byName)
+	key, err = getKey(line, keySize, s.byAddress, s.byName)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	file, ok := s.temp[key]
 	if !ok {
 		file, err = ioutil.TempFile("", key)
 		if err != nil {
-			return err
+			return key, err
 		}
 		s.temp[key] = file
 	} else {
 		file, err = os.OpenFile(file.Name(), os.O_APPEND|os.O_WRONLY, 0644)
 		if err != nil {
-			return err
+			return key, err
 		}
 	}
 	defer file.Close()
 
 	lineToStore, err := json.Marshal(line)
 	if err != nil {
-		return err
+		return key, err
 	}
 	fmt.Printf("[Add] Writting %v in %s\n", string(lineToStore), file.Name())
-	_, err = file.WriteString(string(lineToStore) + "\n")
-	return err
+	if _, err = file.WriteString(string(lineToStore) + "\n"); err != nil {
+		return key, err
+	}
+
+	// Keep track of each bucket size so the algorithm can be informed easily
+	// whether it needs to continue chunking buckets or whether it can sort
+	// in memory based on the provided buffer size.
+	s.tempSize[key]++
+
+	return key, nil
 }
 
 func getKey(line *Line, keySize int, byAddress bool, byName bool) (string, error) {
