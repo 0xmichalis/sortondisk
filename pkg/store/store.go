@@ -74,7 +74,7 @@ func (s *Store) CreateBucketsForFile(file *os.File, keySize int) error {
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Println(err)
+		fmt.Fprintf(os.Stderr, "Got scanner error: %v\n", err)
 	}
 
 	// Iterate over all newly created buckets and chunk further if necessary
@@ -85,11 +85,6 @@ func (s *Store) CreateBucketsForFile(file *os.File, keySize int) error {
 		if s.bufferSize > bucketSize {
 			if err := s.CreateBucketsForFile(nextFile, keySize+1); err != nil {
 				return err
-			}
-			delete(s.temp, key)
-			delete(s.tempSize, key)
-			if err := os.Remove(nextFile.Name()); err != nil {
-				fmt.Fprintf(os.Stderr, "Failed to clean up temp file %s: %v\n", nextFile.Name(), err)
 			}
 		}
 	}
@@ -125,7 +120,7 @@ func (s *Store) Add(line *Line, keySize int) (string, error) {
 			return key, err
 		}
 	}
-	defer file.Close()
+	// defer file.Close()
 
 	lineToStore, err := json.Marshal(line)
 	if err != nil {
@@ -186,7 +181,10 @@ func (s *Store) Sort() error {
 	keys := make([]string, 0)
 
 	for key := range s.temp {
-		keys = append(keys, key)
+		fileSize := s.tempSize[key]
+		if s.bufferSize <= fileSize {
+			keys = append(keys, key)
+		}
 	}
 
 	outputFile, err := os.Create(s.outputFilePath)
