@@ -1,4 +1,5 @@
 {"Name":"Tokenlon","Address":"0x0000000000095413afC295d19EDeb1Ad7B71c952"}
+{"name":"TrueUSD","address":"0x0000000000085d4780B73119b644AE5ecd22b376"}
 {"Name":"AllianceBlock Token","Address":"0x00a8b738E453fFd858a7edf03bcCfe20412f0Eb0"}
 {"Name":"SKALE","Address":"0x00c83aeCC790e8a4453e5dD3B0B4b3680501a7A7"}
 {"Name":"UniLend Finance Token","Address":"0x0202Be363B8a4820f3F4DE7FaF5224fF05943AB1"}
@@ -22,6 +23,7 @@
 {"Name":"DAO Maker Token","Address":"0x0f51bb10119727a7e5eA3538074fb341F56B09Ad"}
 {"Name":"XIO Network","Address":"0x0f7F961648aE6Db43C75663aC7E5414Eb79b5704"}
 {"Name":"Unilayer","Address":"0x0fF6ffcFDa92c53F615a4A75D982f399C989366b"}
+{"name":"https://unimex.network/","address":"0x10Be9a8dAe441d276a5027936c3aADEd2d82bC15"}
 {"Name":"1INCH Token","Address":"0x111111111117dC0aa78b770fA6A738034120C302"}
 {"Name":"Armor","Address":"0x1337DEF16F9B486fAEd0293eb623Dc8395dFE46a"}
 {"Name":"Armor NXM","Address":"0x1337DEF18C680aF1f9f45cBcab6309562975b1dD"}
@@ -104,6 +106,7 @@
 {"Name":"UnmarshalToken","Address":"0x5a666c7d92E5fA7Edcb6390E4efD6d0CDd69cF37"}
 {"Name":"Dev","Address":"0x5cAf454Ba92e6F2c929DF14667Ee360eD9fD5b26"}
 {"Name":"LUSD Stablecoin","Address":"0x5f98805A4E8be255a32880FDeC7F6728C6568bA0"}
+{"name":"iExec RLC","address":"0x607F4C5BB672230e8672085532f7e901544a7375"}
 {"Name":"Launchpool token","Address":"0x6149C26Cd2f7b5CCdb32029aF817123F6E37Df5B"}
 {"Name":"cVault.finance","Address":"0x62359Ed7505Efc61FF1D56fEF82158CcaffA23D7"}
 {"Name":"AIOZ Network","Address":"0x626E8036dEB333b408Be468F951bdB42433cBF18"}
@@ -140,6 +143,7 @@
 {"Name":"WAX Economic Token","Address":"0x7a2Bc711E19ba6aff6cE8246C546E8c4B4944DFD"}
 {"Name":"dfohub","Address":"0x7b123f53421b1bF8533339BFBdc7C98aA94163db"}
 {"Name":"Robonomics","Address":"0x7dE91B204C1C737bcEe6F000AAA6569Cf7061cb7"}
+{"name":"Lend","address":"0x80fB784B7eD66730e8b1DBd9820aFD29931aab03"}
 {"Name":"OriginToken","Address":"0x8207c1FfC5B6804F6024322CcF34F29c3541Ae26"}
 {"Name":"PolkastarterToken","Address":"0x83e6f1E41cdd28eAcEB20Cb649155049Fac3D5Aa"}
 {"Name":"Unibright","Address":"0x8400D94A5cb0fa0D041a3788e395285d61c9ee5e"}
@@ -202,6 +206,7 @@
 {"Name":"World Token","Address":"0xBF494F02EE3FdE1F20BEE6242bCe2d1ED0c15e47"}
 {"Name":"Swapfolio","Address":"0xBa21Ef4c9f433Ede00badEFcC2754B8E74bd538A"}
 {"Name":"Synthetix Network Token","Address":"0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F"}
+{"name":"Wrapped Ethereum","address":"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"}
 {"Name":"DLP Duck Token","Address":"0xC0bA369c8Db6eB3924965e5c4FD0b4C1B91e305F"}
 {"Name":"Chain Games","Address":"0xC4C2614E694cF534D407Ee49F8E44D125E4681c4"}
 {"Name":"ZEN Exchange Token","Address":"0xC52C326331E9Ce41F04484d3B5E5648158028804"}
