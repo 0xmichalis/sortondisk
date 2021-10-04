@@ -96,8 +96,13 @@ func (s *Sorter) createBucketsForFile(file *os.File, keySize int) error {
 		nextFile := s.temp[key]
 		bucketSize := s.tempSize[key]
 
+		newFile, err := os.Open(nextFile.Name())
+		if err != nil {
+			return err
+		}
+
 		if s.bufferSize < bucketSize {
-			if err := s.createBucketsForFile(nextFile, keySize+1); err != nil {
+			if err := s.createBucketsForFile(newFile, keySize+1); err != nil {
 				return err
 			}
 		}
