@@ -140,14 +140,16 @@ func TestSortByName(t *testing.T) {
 	// Ensure input content matches output content in loc and values
 	t.Log("Checking against original input content")
 	inputContent := getLinesForFile(t, "../../test/data.in")
-	gotOutMap := sliceToMap(gotOutContent)
-	for name, address := range sliceToMap(inputContent) {
-		gotAddress, ok := gotOutMap[name]
-		if !ok {
-			t.Fatalf("missing name %s in original input", name)
+	for _, inputLine := range inputContent {
+		lineExists := false
+		for _, outputLine := range gotOutContent {
+			if inputLine.Address == outputLine.Address &&
+				inputLine.Name == outputLine.Name {
+				lineExists = true
+			}
 		}
-		if address != gotAddress {
-			t.Fatalf("expected address %s, got %s", address, gotAddress)
+		if !lineExists {
+			t.Fatalf("Cannot find line with name=%s and address=%s in output", inputLine.Name, inputLine.Address)
 		}
 	}
 }
