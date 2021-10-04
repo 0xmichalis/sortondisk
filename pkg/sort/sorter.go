@@ -73,7 +73,7 @@ func (s *Sorter) Sort(file *os.File) error {
 
 func (s *Sorter) createBucketsForFile(file *os.File, keySize int) error {
 	scanner := bufio.NewScanner(file)
-	createdKeys := make([]string, 0)
+	createdKeys := make(map[string]struct{})
 
 	for scanner.Scan() {
 		var line Line
@@ -83,7 +83,7 @@ func (s *Sorter) createBucketsForFile(file *os.File, keySize int) error {
 		if key, err := s.add(&line, keySize); err != nil {
 			return fmt.Errorf("Failed to store %v: %w\n", line, err)
 		} else {
-			createdKeys = append(createdKeys, key)
+			createdKeys[key] = struct{}{}
 		}
 	}
 
@@ -92,7 +92,7 @@ func (s *Sorter) createBucketsForFile(file *os.File, keySize int) error {
 	}
 
 	// Iterate over all newly created buckets and chunk further if necessary
-	for _, key := range createdKeys {
+	for key := range createdKeys {
 		nextFile := s.temp[key]
 		bucketSize := s.tempSize[key]
 
