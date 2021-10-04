@@ -106,7 +106,7 @@ func TestSortByName(t *testing.T) {
 	defer os.Remove(gotOut.Name())
 
 	// Run sorter
-	s := sort.New(25, true, false, gotOut.Name())
+	s := sort.New(25, false, true, gotOut.Name())
 	if err := s.Sort(input); err != nil {
 		t.Fatal(err)
 	}
