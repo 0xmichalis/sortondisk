@@ -72,9 +72,14 @@ func TestSortByAddress(t *testing.T) {
 		}
 	}
 
+	t.Log("Checking loc against original input")
+	inputContent := getLinesForFile(t, "../../test/data.in")
+	if len(gotOutContent) != len(inputContent) {
+		t.Fatalf("expected output file length %d, got %d (%s)", len(inputContent), len(gotOutContent), gotOut.Name())
+	}
+
 	// Ensure input content matches output content in loc and values
 	t.Log("Checking against original input content")
-	inputContent := getLinesForFile(t, "../../test/data.in")
 	for _, inputLine := range inputContent {
 		lineExists := false
 		for _, outputLine := range gotOutContent {
@@ -131,9 +136,14 @@ func TestSortByName(t *testing.T) {
 		}
 	}
 
+	t.Log("Checking loc against original input")
+	inputContent := getLinesForFile(t, "../../test/data.in")
+	if len(gotOutContent) != len(inputContent) {
+		t.Fatalf("expected output file length %d, got %d (%s)", len(inputContent), len(gotOutContent), gotOut.Name())
+	}
+
 	// Ensure input content matches output content in loc and values
 	t.Log("Checking against original input content")
-	inputContent := getLinesForFile(t, "../../test/data.in")
 	for _, inputLine := range inputContent {
 		lineExists := false
 		for _, outputLine := range gotOutContent {
