@@ -57,16 +57,19 @@ func TestSortByAddress(t *testing.T) {
 	if err := s.Sort(input); err != nil {
 		t.Fatal(err)
 	}
+	t.Logf("Sorted file %s", gotOut.Name())
 
 	// Compare outputs
 	expectedOutContent := getLinesForFile(t, "../../test/data_address")
 	gotOutContent := getLinesForFile(t, gotOut.Name())
 
+	t.Log("Checking expected loc")
 	if len(gotOutContent) != len(expectedOutContent) {
 		t.Fatalf("expected output file length %d, got %d (%s)", len(expectedOutContent), len(gotOutContent), gotOut.Name())
 	}
 
 	// Compare expectedOut with gotOut content
+	t.Log("Checking expected content")
 	for i, line := range expectedOutContent {
 		gotLine := gotOutContent[i]
 		if line.Name != gotLine.Name {
@@ -78,6 +81,7 @@ func TestSortByAddress(t *testing.T) {
 	}
 
 	// Ensure input content matches output content in loc and values
+	t.Log("Checking against original input content")
 	inputContent := getLinesForFile(t, "../../test/data.in")
 	gotOutMap := sliceToMap(gotOutContent)
 	for name, address := range sliceToMap(inputContent) {
@@ -110,16 +114,19 @@ func TestSortByName(t *testing.T) {
 	if err := s.Sort(input); err != nil {
 		t.Fatal(err)
 	}
+	t.Logf("Sorted file %s", gotOut.Name())
 
 	// Compare outputs
 	expectedOutContent := getLinesForFile(t, "../../test/data_name")
 	gotOutContent := getLinesForFile(t, gotOut.Name())
 
+	t.Log("Checking expected loc")
 	if len(gotOutContent) != len(expectedOutContent) {
 		t.Fatalf("expected output file length %d, got %d (%s)", len(expectedOutContent), len(gotOutContent), gotOut.Name())
 	}
 
 	// Compare expectedOut with gotOut content
+	t.Log("Checking expected content")
 	for i, line := range expectedOutContent {
 		gotLine := gotOutContent[i]
 		if line.Name != gotLine.Name {
@@ -131,6 +138,7 @@ func TestSortByName(t *testing.T) {
 	}
 
 	// Ensure input content matches output content in loc and values
+	t.Log("Checking against original input content")
 	inputContent := getLinesForFile(t, "../../test/data.in")
 	gotOutMap := sliceToMap(gotOutContent)
 	for name, address := range sliceToMap(inputContent) {
