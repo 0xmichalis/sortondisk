@@ -11,8 +11,8 @@ import (
 )
 
 type Line struct {
-	Name    string
-	Address string
+	Name    string `json:"name"`
+	Address string `json:"address"`
 }
 
 type ByName []*Line
