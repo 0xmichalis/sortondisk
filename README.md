@@ -12,12 +12,12 @@ go build
 
 Sort input file by name
 ```
-./sorter -input ./test/data.in -name -output result.out
+./sortondisk -input ./test/data.in -name -output result.out
 ```
 
 Sort input file by address
 ```
-./sorter -input ./test/data.in -address -output result.out
+./sortondisk -input ./test/data.in -address -output result.out
 ```
 
 ## Test
