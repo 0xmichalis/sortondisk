@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kargakis/sorter/pkg/sort"
+	"github.com/kargakis/sortondisk/pkg/bucketsort"
 )
 
 var (
@@ -54,7 +54,7 @@ func main() {
 	}
 	defer file.Close()
 
-	s := sort.New(*bufferSize, *byAddress, *byName, *output)
+	s := bucketsort.New(*bufferSize, *byAddress, *byName, *output)
 	if err := s.Sort(file); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to sort: %v\n", err)
 		os.Exit(1)

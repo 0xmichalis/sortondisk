@@ -1,6 +1,6 @@
-# sorter
+# sortondisk
 
-A sort on disk utility proof-of-concept
+Sort on disk algos.
 
 ## Install
 

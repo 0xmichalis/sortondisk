@@ -1,4 +1,4 @@
-package sort_test
+package bucketsort_test
 
 import (
 	"bufio"
@@ -7,20 +7,20 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kargakis/sorter/pkg/sort"
+	"github.com/kargakis/sortondisk/pkg/bucketsort"
 )
 
-func getLinesForFile(t *testing.T, path string) []*sort.Line {
+func getLinesForFile(t *testing.T, path string) []*bucketsort.Line {
 	file, err := os.Open(path)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer file.Close()
 
-	content := make([]*sort.Line, 0)
+	content := make([]*bucketsort.Line, 0)
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		var line sort.Line
+		var line bucketsort.Line
 		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
 			t.Fatalf("Failed to unmarshal %s: %v\n", scanner.Text(), err)
 		}
@@ -45,7 +45,7 @@ func TestSortByAddress(t *testing.T) {
 	defer os.Remove(gotOut.Name())
 
 	// Run sorter
-	s := sort.New(18, true, false, gotOut.Name())
+	s := bucketsort.New(18, true, false, gotOut.Name())
 	if err := s.Sort(input); err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +109,7 @@ func TestSortByName(t *testing.T) {
 	defer os.Remove(gotOut.Name())
 
 	// Run sorter
-	s := sort.New(25, false, true, gotOut.Name())
+	s := bucketsort.New(25, false, true, gotOut.Name())
 	if err := s.Sort(input); err != nil {
 		t.Fatal(err)
 	}
